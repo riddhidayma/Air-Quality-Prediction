@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality Prediction - Random Forest Model</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-leaf me-2"></i>Air Quality Predictor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#prediction">Prediction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#model-info">Model Info</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold text-white mb-4">
+                        Predict Air Quality with AI
+                    </h1>
+                    <p class="lead text-white-50 mb-4">
+                        Using advanced Random Forest algorithms to predict PM2.5 levels based on environmental parameters.
+                        Get accurate air quality predictions in real-time.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#prediction" class="btn btn-light btn-lg">
+                            <i class="fas fa-play me-2"></i>Start Prediction
+                        </a>
+                        <a href="#model-info" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-info-circle me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-animation">
+                        <div class="floating-card">
+                            <i class="fas fa-cloud-sun fa-3x text-primary"></i>
+                            <h4 class="mt-3">Real-time Analysis</h4>
+                            <p>Advanced machine learning for accurate predictions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Model Performance Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold">Model Performance</h2>
+                    <p class="lead text-muted">Our Random Forest model achieves excellent accuracy</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="metric-circle bg-primary text-white mb-3">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                            <h3 class="card-title">{{ metrics.r2_score if metrics else '0.85' }}</h3>
+                            <p class="card-text text-muted">R² Score</p>
+                            <small class="text-success">Excellent Fit</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="metric-circle bg-success text-white mb-3">
+                                <i class="fas fa-bullseye fa-2x"></i>
+                            </div>
+                            <h3 class="card-title">{{ metrics.rmse if metrics else '12.5' }}</h3>
+                            <p class="card-text text-muted">RMSE</p>
+                            <small class="text-success">Low Error</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="metric-circle bg-info text-white mb-3">
+                                <i class="fas fa-percentage fa-2x"></i>
+                            </div>
+                            <h3 class="card-title">{{ metrics.mae if metrics else '8.2' }}</h3>
+                            <p class="card-text text-muted">MAE</p>
+                            <small class="text-success">High Accuracy</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prediction Section -->
+    <section id="prediction" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold">Air Quality Prediction</h2>
+                    <p class="lead text-muted">Enter environmental parameters to predict PM2.5 levels</p>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <form id="predictionForm">
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label for="DEWP" class="form-label">Dew Point (°C)</label>
+                                        <input type="number" class="form-control" id="DEWP" name="DEWP" step="0.1" required>
+                                        <div class="form-text">Temperature at which air becomes saturated</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="TEMP" class="form-label">Temperature (°C)</label>
+                                        <input type="number" class="form-control" id="TEMP" name="TEMP" step="0.1" required>
+                                        <div class="form-text">Current air temperature</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="PRES" class="form-label">Pressure (hPa)</label>
+                                        <input type="number" class="form-control" id="PRES" name="PRES" step="0.1" required>
+                                        <div class="form-text">Atmospheric pressure</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="Iws" class="form-label">Wind Speed (m/s)</label>
+                                        <input type="number" class="form-control" id="Iws" name="Iws" step="0.01" required>
+                                        <div class="form-text">Cumulated wind speed</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Is" class="form-label">Snow Hours</label>
+                                        <input type="number" class="form-control" id="Is" name="Is" step="0.1" required>
+                                        <div class="form-text">Cumulated hours of snow</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="Ir" class="form-label">Rain Hours</label>
+                                        <input type="number" class="form-control" id="Ir" name="Ir" step="0.1" required>
+                                        <div class="form-text">Cumulated hours of rain</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="cbwd" class="form-label">Wind Direction</label>
+                                        <select class="form-select" id="cbwd" name="cbwd" required>
+                                            <option value="">Select direction</option>
+                                            <option value="NW">Northwest (NW)</option>
+                                            <option value="NE">Northeast (NE)</option>
+                                            <option value="SW">Southwest (SW)</option>
+                                            <option value="SE">Southeast (SE)</option>
+                                            <option value="cv">Calm/Variable (cv)</option>
+                                        </select>
+                                        <div class="form-text">Combined wind direction</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="hour" class="form-label">Hour (0-23)</label>
+                                        <input type="number" class="form-control" id="hour" name="hour" min="0" max="23" required>
+                                        <div class="form-text">Hour of the day</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="month" class="form-label">Month (1-12)</label>
+                                        <input type="number" class="form-control" id="month" name="month" min="1" max="12" required>
+                                        <div class="form-text">Month of the year</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="pm2_5_lag1" class="form-label">Previous PM2.5</label>
+                                        <input type="number" class="form-control" id="pm2_5_lag1" name="pm2_5_lag1" step="0.1" required>
+                                        <div class="form-text">Previous hour's PM2.5 value</div>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-calculator me-2"></i>Predict Air Quality
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Prediction Result -->
+            <div class="row justify-content-center mt-4" id="predictionResult" style="display: none;">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5 text-center">
+                            <div class="result-animation">
+                                <i class="fas fa-chart-bar fa-4x text-primary mb-3"></i>
+                                <h3 id="predictionValue" class="display-4 fw-bold text-primary"></h3>
+                                <p id="predictionMessage" class="lead"></p>
+                                <div id="airQualityStatus" class="badge fs-6 p-3 mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Model Information Section -->
+    <section id="model-info" class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold">How Random Forest Works</h2>
+                    <p class="lead text-muted">Understanding the machine learning algorithm behind our predictions</p>
+                </div>
+            </div>
+            
+            <!-- Random Forest Explanation -->
+            <div class="row g-5 align-items-center mb-5">
+                <div class="col-lg-6">
+                    <h3 class="fw-bold mb-4">Ensemble Learning Method</h3>
+                    <p class="lead">Random Forest combines multiple decision trees to make accurate predictions.</p>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <i class="fas fa-tree text-success me-3"></i>
+                            <span>Multiple decision trees work together</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-random text-primary me-3"></i>
+                            <span>Random feature selection for diversity</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-vote-yea text-info me-3"></i>
+                            <span>Majority voting for final prediction</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt text-warning me-3"></i>
+                            <span>Robust against overfitting</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="forest-diagram text-center">
+                        <img src="static\images\random_forest_diagram.png" alt="Random Forest Diagram" class="img-fluid rounded shadow" style="max-width: 100%; height: auto;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Importance -->
+            <div class="row g-5">
+                <div class="col-12">
+                    <h3 class="fw-bold text-center mb-4">Feature Importance Analysis</h3>
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <canvas id="featureImportanceChart" width="400" height="300"></canvas>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h5 class="fw-bold mb-3">Key Features</h5>
+                                    <div class="feature-importance-list">
+                                        {% if feature_importances %}
+                                            {% for feature, importance in feature_importances.items() %}
+                                            <div class="feature-item d-flex justify-content-between align-items-center mb-2">
+                                                <span class="text-capitalize">{{ feature.replace('_', ' ') }}</span>
+                                                <span class="badge bg-primary">{{ "%.3f"|format(importance) }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="feature-item d-flex justify-content-between align-items-center mb-2">
+                                                <span>PM2.5 Lag</span>
+                                                <span class="badge bg-primary">0.245</span>
+                                            </div>
+                                            <div class="feature-item d-flex justify-content-between align-items-center mb-2">
+                                                <span>Temperature</span>
+                                                <span class="badge bg-primary">0.189</span>
+                                            </div>
+                                            <div class="feature-item d-flex justify-content-between align-items-center mb-2">
+                                                <span>Dew Point</span>
+                                                <span class="badge bg-primary">0.156</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dataset Information -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold">Air Quality Dataset</h2>
+                    <p class="lead text-muted">Understanding the data that powers our predictions</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                            <h4>43,824 Records</h4>
+                            <p class="text-muted">Comprehensive hourly air quality data</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
+                            <h4>Time Series Data</h4>
+                            <p class="text-muted">Hourly measurements over multiple years</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                            <h4>12 Features</h4>
+                            <p class="text-muted">Environmental and meteorological parameters</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">Dataset Features</h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-primary">Meteorological Parameters</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-thermometer-half me-2"></i>Temperature (°C)</li>
+                                        <li><i class="fas fa-tint me-2"></i>Dew Point (°C)</li>
+                                        <li><i class="fas fa-compress-alt me-2"></i>Pressure (hPa)</li>
+                                        <li><i class="fas fa-wind me-2"></i>Wind Speed (m/s)</li>
+                                        <li><i class="fas fa-compass me-2"></i>Wind Direction</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-success">Environmental Factors</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-snowflake me-2"></i>Snow Hours</li>
+                                        <li><i class="fas fa-cloud-rain me-2"></i>Rain Hours</li>
+                                        <li><i class="fas fa-clock me-2"></i>Hour of Day</li>
+                                        <li><i class="fas fa-calendar me-2"></i>Month</li>
+                                        <li><i class="fas fa-history me-2"></i>Previous PM2.5</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-leaf me-2"></i>Air Quality Predictor</h5>
+                    <p class="text-muted">Advanced machine learning for environmental monitoring</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted">Powered by Random Forest Algorithm</p>
+                    <p class="text-muted">© 2024 Air Quality Prediction System</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 

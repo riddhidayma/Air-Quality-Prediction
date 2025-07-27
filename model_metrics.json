@@ -1,0 +1,1 @@
+{"r2_score": 0.9265, "rmse": 24.9583, "mae": 12.8982, "best_params": {"regressor__max_depth": 10, "regressor__min_samples_split": 5, "regressor__n_estimators": 150}}
